@@ -1,22 +1,21 @@
 local M = {}
 
-local sheet = require ("com.inputIntegrate.Imgs.vpad_images")
-local objectSheet = graphics.newImageSheet( "com/inputIntegrate/Imgs/vpad_images.png", sheet:getSheet())
-
-local uiGroup
+local sheet = require ("com.vInput.Imgs.vpad_images")
+local objectSheet = graphics.newImageSheet( "com/vInput/Imgs/vpad_images.png", sheet:getSheet())
 
 system.activate("multitouch")
 
 local function addImageRect( group, imageName, centerX, centerY, width, height )
-	local index = sheet:getFrameIndex(imageName)
+	local index 	= sheet:getFrameIndex(imageName)
 	local frameInfo = sheet:getSheet().frames[index]
 
-	local newWidth = width or frameInfo.width
-	local newHeight = height or frameInfo.height
+	local newWidth 	= width 	or frameInfo.width
+	local newHeight = height 	or frameInfo.height
 
-	local newImage = display.newImageRect(group, objectSheet, index, newWidth, newHeight)
-	newImage.x = centerX or 0
-	newImage.y = centerY or 0
+	local newImage 	= display.newImageRect(group, objectSheet, index, newWidth, newHeight)
+
+	newImage.x 		= centerX 	or 0
+	newImage.y 		= centerY 	or 0
 
 	return newImage
 end
@@ -44,22 +43,6 @@ function M.addAnalogStick(centerX, centerY, eventName)
 
 	local touchPos = {	x = 0,	y = 0	}
 
-	--[[
-	local is_debug_mode = true
-	local options = 
-	{
-		parent = inatance,
-	    text = "",
-	    x = centerX,
-	    y = centerY - radius,
-	    fontSize = 40,
-	    font = native.systemFont,
-	    aline = "center"
-	}
-	local statusLabel = display.newText( options )
-	statusLabel:setFillColor( 0, 0, 0 )
-	]]--
-
 	local function updateThumbPosition()
 		thumb.isVisible = evMap.touched
 
@@ -81,16 +64,6 @@ function M.addAnalogStick(centerX, centerY, eventName)
 			thumb.x = touchPos.x
 			thumb.y = touchPos.y
 		end
-
-		--[[
-		if is_debug_mode then
-			if evMap.touched then
-				statusLabel.text = string.format("%.2f , %.2f", evMap.x, evMap.y)
-			else
-				statusLabel.text = ""
-			end
-		end
-		]]--
 	end
 
 	function stickBg:touch (event)
@@ -154,9 +127,6 @@ function M.addAnalogStick(centerX, centerY, eventName)
 
 	function instance:destroy()
 		instance:deactivate()
-
-		display.remove( stickBg )
-		display.remove( thumb )
 	end
 
 	instance:activate()
@@ -165,9 +135,6 @@ function M.addAnalogStick(centerX, centerY, eventName)
 	return instance
 end
 
-
-
--- transition.to( target, params )
 
 -- OPTION PARAMS
 --[[
@@ -186,6 +153,7 @@ width (optional)
 
 height (optional)
 ]]
+
 function M.addButton (options)
 	local instance = display.newGroup()
 
@@ -204,23 +172,39 @@ function M.addButton (options)
 		phase   = ""				-- began ended
 	}
 
+	local touchID = nil
+
 	function button:touch (event)
 		local phase = event.phase
 		evMap.phase = phase
 
 		if phase == "began" then
-			Runtime:dispatchEvent( evMap )
+			if touchID == nil then
+				touchID = event.id
+				Runtime:dispatchEvent( evMap )
+			end
 		elseif phase == "ended" then
-			Runtime:dispatchEvent( evMap )
+			if touchID ~= nil then
+				touchID = nil
+				Runtime:dispatchEvent( evMap )
+			end
+		end
+	end
+
+	local function onTouch (event)
+		if event.phase == "ended" and touchID ~= nil then
+			touchID = nil
 		end
 	end
 
 	function instance:activate()
 		self:addEventListener( "touch", button )
+		Runtime:addEventListener ("touch", onTouch)
 	end
 
 	function instance:deactivate()
 		self:removeEventListener( "touch", button )
+		Runtime:removeEventListener ("touch", onTouch)
 	end
 
 	function instance:destroy()

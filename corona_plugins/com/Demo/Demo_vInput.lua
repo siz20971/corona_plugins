@@ -1,3 +1,4 @@
+require ( "com.function_extends" )
 
 local composer = require( "composer" )
 
@@ -10,41 +11,17 @@ local heroGroup
 local hero
 local line
 
-math.clamp = function(input, min, max)
-		if input < min then
-			return min
-		elseif input > max then
-			return max
-		else
-			return input
-		end
+local function updateCharacterMovement (x, y)
+	if heroGroup == nil then
+
+		print ("x is nil")
 	end
 
-local function prepareCharacter (self)
-	heroGroup = display.newGroup( )
-
-	hero = display.newCircle(heroGroup, 0, 0 , 15 )
-	hero:setFillColor( 0, 0, 0 )
-
-	line = display.newRect(heroGroup, hero.x, hero.y, display.contentWidth, 5 )
-	line.anchorX = 0
-	line.anchorY = 0.5
-	line:setFillColor( 1, 0, 0 )
-	line.alpha = 0.5
-	line:toBack( )
-
-	heroGroup.x = display.contentCenterX
-	heroGroup.y = display.contentCenterY
-end
-
-local function updateCharacterMovement (x, y)
 	local mul = 0.016 * 450
-
-	local x = math.clamp(heroGroup.x + x * mul, 0, display.contentWidth)
-	local y = math.clamp(heroGroup.y - y * mul, 0, display.contentHeight)
-
-	heroGroup.x = x
-	heroGroup.y = y
+	local newX = math.clamp(heroGroup.x + x * mul, 0, display.contentWidth)
+	heroGroup.x = newX
+	local newY = math.clamp(heroGroup.y - y * mul, 0, display.contentHeight)
+	heroGroup.y = newY
 end
 
 -- -----------------------------------------------------------------------------------
@@ -60,19 +37,36 @@ local function onRightJoystick(event)
 	elseif event.phase == "ended" then
 		line.isVisible = false
 	else
-		local angle = math.atan2 ( - event.y, event.x ) * (180/math.pi)
+		local angle = - math.atan2 ( event.y, event.x ) * (180/math.pi)
 		line.rotation = angle
 	end
 end
 
 local function onTouchButton (event)
-	print (event.name .. event.buttonName .. event.phase)
+	if event.buttonName == "buttonA" then
+		
+	end
 end
 
-local function prepareController ()
-	require( "com.inputIntegrate.gamepad" ).start()
+local function onBackPressed (event)
+	if event.phase == "ended" then
+		composer.gotoScene ("com.Demo.Demo_menu")
+	end
+end
 
-	local vpad = require( "com.inputIntegrate.vpad")
+-- -----------------------------------------------------------------------------------
+-- Scene event functions
+-- -----------------------------------------------------------------------------------
+
+-- create()
+function scene:create( event )
+	local sceneGroup = self.view
+	-- Code here runs when the scene is first created but has not yet appeared on screen
+
+	-- -------------------------------------------------------
+	-- vPad plugin prepare.
+	-- -------------------------------------------------------
+	local vpad = require( "com.vInput.vpad")
 
 	-- Add Analog Sticks.
 	leftJoystick = vpad.addAnalogStick(display.contentWidth * 0.15, display.contentHeight * 0.75 , "leftJoystickEvent")
@@ -92,30 +86,51 @@ local function prepareController ()
 		height = 100
 	}
 
-	vpad.addButton (btnOptions)
+	local btnA = vpad.addButton (btnOptions)
 
 	btnOptions.centerX = btnOptions.centerX + 150
 	btnOptions.centerY = btnOptions.centerY - 50
 	btnOptions.buttonName = "buttonB"
 	btnOptions.imageName = "btn_B"
 
-	vpad.addButton (btnOptions)
+	local btnB = vpad.addButton (btnOptions)
+
+	self.view:insert(leftJoystick)
+	self.view:insert(rightJoystick)
+	self.view:insert(btnA)
+	self.view:insert(btnB)
 
 	Runtime:addEventListener( "onTouchButton", onTouchButton )
-end
 
--- -----------------------------------------------------------------------------------
--- Scene event functions
--- -----------------------------------------------------------------------------------
+	-- -------------------------------------------------------
+	-- Prepare screen objects
+	-- -------------------------------------------------------
+	heroGroup = display.newGroup( )
+	sceneGroup:insert(heroGroup)
 
--- create()
-function scene:create( event )
+	hero = display.newCircle(heroGroup, 0, 0 , 15 )
+	hero:setFillColor( 0, 0, 0 )
 
-	local sceneGroup = self.view
-	-- Code here runs when the scene is first created but has not yet appeared on screen
+	line = display.newRect(heroGroup, hero.x, hero.y, display.contentWidth, 5 )
+	line.anchorX = 0
+	line.anchorY = 0.5
+	line:setFillColor( 1, 0, 0 )
+	line.alpha = 0.5
+	line:toBack( )
+	line.isVisible = false
 
-	prepareCharacter()
-	prepareController()
+	heroGroup.x = display.contentCenterX
+	heroGroup.y = display.contentCenterY
+
+	local newBtn = display.newRect(sceneGroup, display.contentWidth, 0, display.contentWidth * 0.2, display.contentHeight * 0.13)
+	newBtn:addEventListener( "touch", onBackPressed )
+	newBtn:setFillColor(0.8, 0.8, 0.8)
+	newBtn.anchorX = 1
+	newBtn.anchorY = 0
+
+	local text = display.newText( sceneGroup, "Back to menu", display.contentWidth, 30, nil, 30)
+	text.anchorX = 1
+	text.anchorY = 0
 end
 
 
@@ -143,12 +158,16 @@ function scene:hide( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is on screen (but is about to go off screen)
-		leftJoystick:destroy()
-		rightJoystick:destroy()
+		--leftJoystick:destroy()
+		--rightJoystick:destroy()
 
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
-		
+		Runtime:removeEventListener( "onTouchButton", onTouchButton )
+		Runtime:removeEventListener( "leftJoystickEvent", onLeftJoystick )
+		Runtime:removeEventListener( "rightJoystickEvent", onRightJoystick )
+
+		composer.removeScene( composer.getSceneName( "previous" ) )
 	end
 end
 
