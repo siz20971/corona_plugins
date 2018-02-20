@@ -1,7 +1,7 @@
 local M = {}
 
-local sheet = require ("com.vInput.Imgs.vpad_images")
-local objectSheet = graphics.newImageSheet( "com/vInput/Imgs/vpad_images.png", sheet:getSheet())
+local sheet = require ("plugins.vInput.Imgs.vpad_images")
+local objectSheet = graphics.newImageSheet( "plugins/vInput/Imgs/vpad_images.png", sheet:getSheet())
 
 system.activate("multitouch")
 
@@ -20,8 +20,6 @@ local function addImageRect( group, imageName, centerX, centerY, width, height )
 	return newImage
 end
 
--- TODO : Improve parameter to table
--- TODO : Add deadzone
 function M.addAnalogStick(centerX, centerY, eventName)
 	local instance = display.newGroup()
 

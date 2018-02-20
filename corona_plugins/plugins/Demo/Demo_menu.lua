@@ -1,12 +1,30 @@
-require ( "com.function_extends" )
+require ( "plugins.function_extends" )
 
 local composer = require( "composer" )
 
 local scene = composer.newScene()
 
-local function onBackPressed (event)
+local menus = {
+	"Virtual Joystick",
+	"Demo 02",
+	"Demo 03",	
+	"Demo 04",
+	"Demo 05",
+	"Demo 06",
+	"Demo 07",
+	"Demo 08",
+	"Demo 09"
+}
+
+local function onTouch (event)
+	local btnName = event.target.name
+
 	if event.phase == "ended" then
-		composer.gotoScene ("com.Demo.Demo_menu")
+		if btnName == "Virtual Joystick" then
+			composer.gotoScene ("plugins.Demo.Demo_vInput")
+		else
+			composer.gotoScene ("plugins.Demo.Demo_template")
+		end
 	end
 end
 
@@ -20,16 +38,25 @@ function scene:create( event )
 	local sceneGroup = self.view
 	-- Code here runs when the scene is first created but has not yet appeared on screen
 
-	--[[ DELETE ME ]]
-	local newBtn = display.newRect(sceneGroup, display.contentWidth, 0, display.contentWidth * 0.2, display.contentHeight * 0.13)
-	newBtn:addEventListener( "touch", onBackPressed )
-	newBtn:setFillColor(0.8, 0.8, 0.8)
-	newBtn.anchorX = 1
-	newBtn.anchorY = 0
+	local width = display.contentWidth / 3
+	local height = display.contentHeight / 3
 
-	local text = display.newText( sceneGroup, "Back to menu", display.contentWidth, 30, nil, 30)
-	text.anchorX = 1
-	text.anchorY = 0
+	local group = display.newGroup( )
+
+	for i = 1, #menus, 1 do
+		local x = ((i - 1) % 3) * width
+		local y = math.floor ((i - 1) / 3) * height
+
+		local newBtn = display.newRect(sceneGroup, x, y, width, height )
+		newBtn:setFillColor((i - 1) / #menus, (i - 1) / #menus, (i - 1) / #menus )
+		newBtn.anchorX = 0
+		newBtn.anchorY = 0
+		newBtn.name = menus[i]
+
+		newBtn:addEventListener( "touch", onTouch )
+
+		local text = display.newText(sceneGroup, menus[i] , x + width * 0.5, y + height * 0.5, nil, 40)
+	end
 end
 
 

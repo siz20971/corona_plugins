@@ -1,4 +1,4 @@
-require ( "com.function_extends" )
+require ( "plugins.function_extends" )
 
 local composer = require( "composer" )
 
@@ -50,7 +50,7 @@ end
 
 local function onBackPressed (event)
 	if event.phase == "ended" then
-		composer.gotoScene ("com.Demo.Demo_menu")
+		composer.gotoScene ("plugins.Demo.Demo_menu")
 	end
 end
 
@@ -66,7 +66,7 @@ function scene:create( event )
 	-- -------------------------------------------------------
 	-- vPad plugin prepare.
 	-- -------------------------------------------------------
-	local vpad = require( "com.vInput.vpad")
+	local vpad = require( "plugins.vInput.vpad")
 
 	-- Add Analog Sticks.
 	leftJoystick = vpad.addAnalogStick(display.contentWidth * 0.15, display.contentHeight * 0.75 , "leftJoystickEvent")
