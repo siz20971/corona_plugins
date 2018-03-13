@@ -3,7 +3,7 @@ require ( "plugins.function_extends" )
 local composer = require( "composer" )
 
 local scene = composer.newScene()
-local map = nil
+local map
 
 local function onBackPressed (event)
 	if event.phase == "ended" then
@@ -30,6 +30,10 @@ function onKeyEvent(event)
 	end
 end
 
+local function onLeftJoystick(event)
+	map:translate(-event.x * 15, event.y * 15)
+end
+
 -- create()
 function scene:create( event )
 
@@ -47,8 +51,19 @@ function scene:create( event )
 	text.anchorY = 0
 
 	-- Create Map.
-	map = tiled.newMap("../Demo/Resources/tiled/tiled_map_data.lua")
+	map = tiled.newMap("../Demo/Resources/tiled/map_demo.json")
 	Runtime:addEventListener( "key", onKeyEvent)
+
+	local vpad = require( "plugins.vInput.vpad")
+
+	-- Add Analog Sticks.
+	leftJoystick = vpad.addAnalogStick(display.contentWidth * 0.15, display.contentHeight * 0.75 , "leftJoystickEvent")
+	Runtime:addEventListener( "leftJoystickEvent", onLeftJoystick )
+
+	if map then
+		self.view:insert(map)
+	end
+	self.view:insert(leftJoystick)
 end
 
 
@@ -90,6 +105,7 @@ function scene:destroy( event )
 	-- Code here runs prior to the removal of scene's view	
 
 	Runtime:removeEventListener( "key", onKeyEvent )
+	Runtime:removeEventListener( "leftJoystickEvent", onLeftJoystick )
 end
 
 
