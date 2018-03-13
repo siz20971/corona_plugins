@@ -44,7 +44,8 @@ local function makeImageSheets(data)
 		}
 
 		-- TODO : image path replace.
-		local sheet = graphics.newImageSheet("plugins/Demo/Resources/tiled/map_sheet.png", options)
+		local imgPath = "plugins/Demo/Resources/tiled/map_sheet.png"
+		local sheet = graphics.newImageSheet(imgPath, options)
 		imgSheets[i] = sheet
 	end
 	
@@ -75,8 +76,10 @@ function M.newMap(path)
 
 		-- draw all tiles.
 		for j = 1, #data.layers[i].data do
-			local index = data.layers[i].data[j]
-			if data.layers[i].data[j] > 0 then
+			local layer = data.layers[i]
+			local index = layer.data[j]
+
+			if index > 0 then
 				local x = (j - 1) % mapInfo.width
 				local y = math.floor((j-1) / mapInfo.height)
 				local sheet = imgSheets[1]

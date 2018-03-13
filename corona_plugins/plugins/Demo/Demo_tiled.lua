@@ -51,7 +51,8 @@ function scene:create( event )
 	text.anchorY = 0
 
 	-- Create Map.
-	map = tiled.newMap("../Demo/Resources/tiled/map_demo.json")
+	local path = system.pathForFile( "plugins/Demo/Resources/tiled/map_demo.json", system.ResourceDirectory)
+	map = tiled.newMap(path)
 	Runtime:addEventListener( "key", onKeyEvent)
 
 	local vpad = require( "plugins.vInput.vpad")
