@@ -52,7 +52,7 @@ function scene:create( event )
 
 	-- Create Map.
 	local path = system.pathForFile( "plugins/Demo/Resources/tiled/map_demo.json", system.ResourceDirectory)
-	map = tiled.newMap(path)
+	map = tiled.newMap(path, 8)
 	Runtime:addEventListener( "key", onKeyEvent)
 
 	local vpad = require( "plugins.vInput.vpad")

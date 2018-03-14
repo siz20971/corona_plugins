@@ -6,6 +6,7 @@ local csvTools = require ("plugins.csvTools.csvTools")
 csvTools:Debug()
 -- Temp.
 
+display.setDefault( "isImageSheetSampledInsideFrame", true )
 display.setDefault( "background", 1, 1, 1 )
 display.setStatusBar (display.HiddenStatusBar)
 

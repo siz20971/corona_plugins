@@ -25,12 +25,12 @@ local function readMapData(path)
 	return data
 end
 
-local function makeImageSheets(data)
+local function prepareTileSets(data)
 	if data == nil or data.tilesets == nil or #data.tilesets == 0 then
 		return nil
 	end
 
-	local imgSheets = {}
+	local retData = {}
 
 	for i = 1, #data.tilesets do
 		local tileset = data.tilesets[i]
@@ -45,20 +45,57 @@ local function makeImageSheets(data)
 
 		-- TODO : image path replace.
 		local imgPath = "plugins/Demo/Resources/tiled/map_sheet.png"
-		local sheet = graphics.newImageSheet(imgPath, options)
-		imgSheets[i] = sheet
+
+		if i == 2 then
+			imgPath = "plugins/Demo/Resources/tiled/characters.png"
+		end
+
+		tileset.sheet = graphics.newImageSheet(imgPath, options)
+
+		retData[i] = tileset
 	end
-	
-	return imgSheets
+
+	-- 
+	function retData.getSheet (index)
+		
+	end
+
+	return retData
 end
 
-function M.newMap(path)
+function M.newMap(path, scale)
 	local map = display.newGroup()
 	local layers = {}
 	local mapInfo = {}
 	
 	local data = readMapData(path)
-	local imgSheets = makeImageSheets(data)
+	local tileSets = prepareTileSets(data)
+
+	local function drawTile(group, index, coordX, coordY)
+		local tileset = nil
+		local realIndex
+		local tile
+
+		for i = 1, #tileSets do
+			local lastIdx = tileSets[i].firstgid + tileSets[i].tilecount
+			realIndex = index - tileSets[i].firstgid + 1 
+
+			if index <= lastIdx then
+				tileset = tileSets[i]
+				break
+			end
+		end
+
+		if tileset ~= nil and realIndex > 0 then
+			tile = display.newImageRect (group, tileset.sheet, realIndex, tileset.tilewidth, tileset.tileheight)
+			tile.x = coordX * mapInfo.tileWidth
+			tile.y = coordY * mapInfo.tileHeight
+
+			return tile
+		end
+
+		return nil
+	end
 
 	mapInfo.width = data.width or 0
 	mapInfo.height = data.height or 0
@@ -79,17 +116,24 @@ function M.newMap(path)
 			local layer = data.layers[i]
 			local index = layer.data[j]
 
+			drawTile (layerGroup, index, (j - 1) % mapInfo.width, math.floor((j-1) / mapInfo.height))
+
+			--[[
 			if index > 0 then
 				local x = (j - 1) % mapInfo.width
 				local y = math.floor((j-1) / mapInfo.height)
-				local sheet = imgSheets[1]
+				local sheet, newIdx = imgSheets.getSheet(index)
 
-				local tile = display.newImageRect (layerGroup, sheet, index, mapInfo.tileWidth, mapInfo.tileHeight)
+				local tile = display.newImageRect (layerGroup, sheet, newIdx, mapInfo.tileWidth, mapInfo.tileHeight)
 				tile.x = x * mapInfo.tileWidth
 				tile.y = y * mapInfo.tileHeight
 			end
+			]]
 		end
 	end
+
+	map.xScale = scale or 1
+	map.yScale = scale or 1
 
 	function map:changeVisible(layerName, isVisible)
 		if layers[layerName] == nil then
