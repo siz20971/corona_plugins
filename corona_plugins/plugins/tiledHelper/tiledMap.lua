@@ -91,6 +91,7 @@ function M.newMap(path, scale)
 			tile.x = coordX * mapInfo.tileWidth
 			tile.y = coordY * mapInfo.tileHeight
 
+			print (tile.anchorX .. " : " .. tile.anchorY )
 			return tile
 		end
 
@@ -117,32 +118,32 @@ function M.newMap(path, scale)
 			local index = layer.data[j]
 
 			drawTile (layerGroup, index, (j - 1) % mapInfo.width, math.floor((j-1) / mapInfo.height))
-
-			--[[
-			if index > 0 then
-				local x = (j - 1) % mapInfo.width
-				local y = math.floor((j-1) / mapInfo.height)
-				local sheet, newIdx = imgSheets.getSheet(index)
-
-				local tile = display.newImageRect (layerGroup, sheet, newIdx, mapInfo.tileWidth, mapInfo.tileHeight)
-				tile.x = x * mapInfo.tileWidth
-				tile.y = y * mapInfo.tileHeight
-			end
-			]]
 		end
 	end
 
 	map.xScale = scale or 1
 	map.yScale = scale or 1
 
-	function map:changeVisible(layerName, isVisible)
+	--------------------------------------
+	function map:setVisible(layerName, isVisible)
 		if layers[layerName] == nil then
 			return
 		end
-		layers[layerName].isVisible = isVisible
+
+		if layers[layerName].isVisible ~= isVisible then
+			layers[layerName].isVisible = isVisible
+		end
 	end
 
-	function map:translate(dx, dy)
+	function map:setPosition(x, y)
+		map:setPositionX(x)
+		map:setPositionY(y)
+	end
+
+	function map:setPositionX(x)	map.x = x 	end
+	function map:setPositionY(y)	map.y = y 	end
+
+	function map:scroll(dx, dy)
 		local newX = map.x + dx
 		local newY = map.y + dy
 

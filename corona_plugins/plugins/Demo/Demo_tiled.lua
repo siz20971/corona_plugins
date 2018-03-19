@@ -21,17 +21,30 @@ function onKeyEvent(event)
 	local key = event.keyName
 	local phase = event.phase
 
+	-- print (tostring(key) .. " .. " .. tostring(phase))
+
 	if phase == "down" then
 		if key == "z" then
-			map:changeVisible("object", true)
+			map:setVisible("objects", true)
 		elseif key == "x" then
-			map:changeVisible("object", false)
+			map:setVisible("objects", false)
 		end
 	end
 end
 
 local function onLeftJoystick(event)
-	map:translate(-event.x * 15, event.y * 15)
+	map:scroll(-event.x * 0.56, event.y * 0)
+end
+
+local function onTouchButton (event)
+	print (event.buttonName)
+	if event.buttonName == "buttonA" then
+		map:setPosition(0, 0)
+	end
+
+	if event.buttonName == "buttonB" then
+		map:setPosition(8, 0)
+	end
 end
 
 -- create()
@@ -52,7 +65,12 @@ function scene:create( event )
 
 	-- Create Map.
 	local path = system.pathForFile( "plugins/Demo/Resources/tiled/map_demo.json", system.ResourceDirectory)
-	map = tiled.newMap(path, 8)
+	map = tiled.newMap(path, 1)
+
+	if map then
+		self.view:insert(map)
+	end
+
 	Runtime:addEventListener( "key", onKeyEvent)
 
 	local vpad = require( "plugins.vInput.vpad")
@@ -61,9 +79,32 @@ function scene:create( event )
 	leftJoystick = vpad.addAnalogStick(display.contentWidth * 0.15, display.contentHeight * 0.75 , "leftJoystickEvent")
 	Runtime:addEventListener( "leftJoystickEvent", onLeftJoystick )
 
-	if map then
-		self.view:insert(map)
-	end
+	-- Add Buttons.
+	local btnOptions = {
+		centerX = display.contentWidth * 0.75,
+		centerY = display.contentHeight * 0.6,
+		eventName = "onTouchButton",
+		buttonName = "buttonA",
+		imageName = "btn_A",
+		width = 100,
+		height = 100
+	}
+
+	local btnA = vpad.addButton (btnOptions)
+
+	btnOptions.centerX = btnOptions.centerX + 150
+	btnOptions.centerY = btnOptions.centerY - 50
+	btnOptions.buttonName = "buttonB"
+	btnOptions.imageName = "btn_B"
+
+	local btnB = vpad.addButton (btnOptions)
+
+	Runtime:addEventListener( "onTouchButton", onTouchButton )
+
+	self.view:insert(leftJoystick)
+	self.view:insert(btnA)
+	self.view:insert(btnB)
+	
 	self.view:insert(leftJoystick)
 end
 
