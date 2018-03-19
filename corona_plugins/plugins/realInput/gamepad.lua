@@ -1,60 +1,109 @@
+local converter = require("plugins.realInput.gamepadHelper")
+
 local M = {}
 
-local deadzone = 0.3
+local deviceInfo = { }
+deviceInfo["type"] = ""
 
--- modulo
-local function onAxisChanged (event)
-	if math.abs(event.normalizedValue) < deadzone then
-		return
+-- TODO Document
+-- inputDeviceChanged - 입력 장치 변경 감지
+
+-- TODO LIST
+--[[
+function 
+	OnInputDeviceChanged
+	SetDeadzone(float deadzone)
+	SetLeftAnalogDeadzone (float deadzone)
+	SetRightAnalogDeadzone (float deadzone)
+
+	ChangeLeftTriggerMode(bool isButtonMode, float triggerValue (if nil 0.5. This value use when isButtonMode is true only.))
+	ChangeRightTriggerMode(bool isButtonMode, float triggerValue (if nil 0.5. This value use when isButtonMode is true only.))
+]]--
+
+-- ButtonMapping
+-- XBOX
+--[[ 
+buttonSelect
+buttonStart
+leftJoystickButton
+rightJoystickButton
+up
+down
+left
+right
+buttonA
+buttonB
+buttonX
+buttonY
+leftShoulderButton1
+rightShoulderButton1
+
+axis
+1 = left horizontal 
+2 = left vertical
+3 = right horizontal
+4 = right vertical
+5 = left trigger
+6 = right trigger
+]]
+
+local isAPressed = false
+local ticktock = true
+
+local inputs = {}
+
+local function checkInputDeviceChange (event)
+	local deviceType = ""
+
+	if event.device ~= nil then
+		deviceType = event.device.type
 	end
 
-	-- XBOX
-	--[[ 
-	1 = left horizontal 
-	2 = left vertical
-	3 = right horizontal
-	4 = right vertical
-	5 = left trigger
-	6 = right trigger
-	]]
-	print (" name : " .. event.axis.number .. " normalizedValue : " .. event.normalizedValue)
+	if deviceInfo.type ~= deviceType then
+		print ("[ INPUT DEVICE CHANGED : " .. deviceInfo.type .. "->" .. deviceType .. "]")
+		deviceInfo.type = deviceType
+
+		local ev = {}
+		ev.name = "inputDeviceChanged"
+		Runtime:dispatchEvent( event )
+	end
+end
+
+local function onAxisChanged (event)
+	checkInputDeviceChange(event)
 end
 
 local function onKeyEvent (event)
-	local keyName = event.keyName
-	local phase = event.phase
+	checkInputDeviceChange(event)
 
-	if event.device == nil then
-		return
+	if event.phase == "down" then
+		isAPressed = true
+
+		print (event.keyName .. " keyPressDown. " .. tostring(ticktock))
+
+		event.ticktock = ticktock
+		inputs[event.keyName] = event
+
+	elseif event.phase == "up" then
+		isAPressed = false
+
+		print (event.keyName .. " keyPressUp. " .. tostring(ticktock))
 	end
-	
-	-- CHECK ME : 매번 체크가 필요할지 모르겠다.
-	local isXInput = string.match(event.device.displayName, "XInput")
+end
 
-	if isXInput then
+-- NOTE : Pressing event를 구현하려면 1프레임 대기 후 dispatch 해줘야 함.
+-- 	onKeyEvent에서 버튼 입력 확인후 바로 onUpdate가 호출됨.
+local function onUpdate ( event )
+
+	for k, v in pairs(inputs) then
 		
-	else
-		-- !! This condition contains PS4 dualshock. !!
-		print ("NOT XInput")
+	end
+	if isAPressed then
+		print ("A Pressing . " .. tostring(ticktock))
+		isAPressed = false
 	end
 
-	print (event.device.displayName .. "KeyName : " .. keyName .. " Phase : " .. phase)
-end
-
---[[
-local function onInputDeviceStatusChanged (event)
-	if event.connectionStateChanged then
-		if event.device.isConnected then
-			-- GameController connection found
-		else
-			-- GameController connection lost
-		end
-	end
-end
-]]--
-
-local function onUpdate (event)
-	
+	ticktock = not ticktock
 end
 
 function M.start()
